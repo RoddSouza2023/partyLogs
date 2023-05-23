@@ -1,12 +1,14 @@
 const newPartyForm = document.querySelector('#new-party-form');
 const partyContainer = document.querySelector('#party-container');
 
-const PARTIES_API_URL =
+const PARTIES_API_URL = 
   'http://fsa-async-await.herokuapp.com/api/workshop/parties';
-const GUESTS_API_URL =
-  'http://fsa-async-await.herokuapp.com/api/workshop/guests';
-const RSVPS_API_URL = 'http://fsa-async-await.herokuapp.com/api/workshop/rsvps';
-const GIFTS_API_URL = 'http://fsa-async-await.herokuapp.com/api/workshop/gifts';
+const GUESTS_API_URL = 
+  'http://fsa-async-await.herokuapp.com/api/workshop/guests';  
+const RSVPS_API_URL = 
+    'http://fsa-async-await.herokuapp.com/api/workshop/rsvps';
+const GIFTS_API_URL = 
+    'http://fsa-async-await.herokuapp.com/api/workshop/gifts';
 
 // get all parties
 const getAllParties = async () => {
@@ -33,6 +35,18 @@ const getPartyById = async (id) => {
 // delete party
 const deleteParty = async (id) => {
   // your code here
+  try {
+    const response = await fetch(`${PARTIES_API_URL}/${id}`, {
+    method: 'DELETE',
+    });
+    const party = await response.json();
+    console.log(party);
+    getAllParties();
+
+    window.location.reload();
+  } catch (error) {
+    console.log(error)
+  }
 };
 
 // render a single party by id
@@ -42,26 +56,26 @@ const renderSinglePartyById = async (id) => {
     const party = await getPartyById(id);
 
     // GET - /api/workshop/guests/party/:partyId - get guests by party id
-    const guestsResponse = await fetch(`${GUESTS_API_URL}/party/${id}`);
+    const guestsResponse = await fetch(`${GUESTS_API_URL}/party/${id}`); 
     const guests = await guestsResponse.json();
 
     // GET - /api/workshop/rsvps/party/:partyId - get RSVPs by partyId
-    const rsvpsResponse = await fetch(`${RSVPS_API_URL}/party/${id}`);
+    const rsvpsResponse = await fetch(`${RSVPS_API_URL}/party/${id}`); 
     const rsvps = await rsvpsResponse.json();
 
     // GET - get all gifts by party id - /api/workshop/parties/gifts/:partyId -BUGGY?
-    // const giftsResponse = await fetch(`${PARTIES_API_URL}/party/gifts/${id}`);
-    // const gifts = await giftsResponse.json();
+    const giftsResponse = await fetch(`${GIFTS_API_URL}/${id}`);
+    const gifts = await giftsResponse.json();
 
     // create new HTML element to display party details
     const partyDetailsElement = document.createElement('div');
     partyDetailsElement.classList.add('party-details');
     partyDetailsElement.innerHTML = `
-            <h2>${party.title}</h2>
-            <p>${party.event}</p>
-            <p>${party.city}</p>
-            <p>${party.state}</p>
-            <p>${party.country}</p>
+            <h2>${party.name}</h2>
+            <p>${party.description}</p>
+            <p>${party.date}</p>
+            <p>${party.time}</p>
+            <p>${party.location}</p>
             <h3>Guests:</h3>
             <ul>
             ${guests
@@ -75,6 +89,12 @@ const renderSinglePartyById = async (id) => {
               )
               .join('')}
           </ul>
+          <h3>Gifts:</h3>
+            <li>
+              <div>${gifts.description}</div>
+              <div>${gifts.price}</div>
+            </li>
+        </ul>
           
 
 
@@ -114,12 +134,16 @@ const renderParties = async (parties) => {
       const detailsButton = partyElement.querySelector('.details-button');
       detailsButton.addEventListener('click', async (event) => {
         // your code here
+        event.preventDefault();
+        renderSinglePartyById(party.id);
       });
 
       // delete party
       const deleteButton = partyElement.querySelector('.delete-button');
       deleteButton.addEventListener('click', async (event) => {
         // your code here
+        event.preventDefault();
+        deleteParty(party.id);
       });
     });
   } catch (error) {
@@ -130,6 +154,14 @@ const renderParties = async (parties) => {
 // init function
 const init = async () => {
   // your code here
+  try {
+    const parties = await getAllParties();
+    renderParties(parties);
+
+    
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 init();
